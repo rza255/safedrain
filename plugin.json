@@ -1,0 +1,19 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "safe-drain",
+  "version": "0.2.0",
+  "description": "Usage-aware graceful drain for long-running Codex and agent sessions using native runtime quota capabilities.",
+  "author": {
+    "name": "Pavel Ruzicka"
+  },
+  "repository": "https://github.com/rza255/safedrain",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "usage",
+    "quota",
+    "checkpoint",
+    "agent",
+    "safe-drain"
+  ]
+}
