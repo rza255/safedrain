@@ -2,11 +2,18 @@
 
 **Usage-aware graceful drain for long-running Codex / agent sessions.**
 
-SafeDrain is a small behavioral skill that tells an agent to use the runtime's **native usage/quota capability** proactively, reduce work-unit size as quota pressure increases, and checkpoint safely before a quota window is exhausted.
+SafeDrain is a small behavioral skill that tells an agent to use the runtime's
+**native usage/quota capability** proactively, adapt work-unit size and usage-check
+cadence as quota pressure rises, and checkpoint safely before a quota window is exhausted.
 
-It deliberately does **not** add a daemon, watchdog, custom telemetry transport, polling script, usage parser, or persistent SafeDrain state. The design principle is simple: use the capability the runtime already has, and build extra machinery only if a concrete gap is observed.
+It deliberately does **not** add a daemon, watchdog, custom telemetry transport, polling
+script, usage parser, or persistent SafeDrain state. The design principle is simple:
+use the capability the runtime already has, and build extra machinery only if a concrete
+gap is observed.
 
-> **Status:** v0.2 beta. Tested in naturalistic Codex workflows; not a claim of universal reliability across every model, account, runtime, or provider.
+> **Status:** v0.2.1 beta. Corrective cadence patch prompted by two reproduced naturalistic
+> `THRESHOLD_CROSSED_UNOBSERVED` failures. The patch itself still requires further
+> naturalistic validation.
 
 ## What SafeDrain does
 
@@ -14,9 +21,12 @@ SafeDrain instructs the active agent to:
 
 - check all relevant usage windows exposed by the runtime;
 - evaluate each window independently against its own thresholds;
-- increase usage-check frequency as a window approaches its limits;
-- reduce the size of newly started work units under quota pressure;
-- preflight usage before long operations that may not return control for a while;
+- avoid treating "above threshold" as sufficient evidence that the current cadence is safe;
+- establish a fresh in-session burn-rate baseline after start, resume/handoff, or context compaction;
+- compare recent quota consumption with distance to the next configured threshold;
+- reduce work-unit size **and** increase usage-check frequency together under quota pressure;
+- avoid chaining enough unchecked comparable work to cross the next threshold;
+- preflight usage immediately before each long-running or expensive operation;
 - stop starting substantive work at the configured drain threshold;
 - finish only the current atomic step needed to reach a recoverable boundary;
 - create/update the normal project checkpoint or handoff;
@@ -24,9 +34,12 @@ SafeDrain instructs the active agent to:
 
 ## Requirement
 
-SafeDrain depends on the active runtime exposing a **native usage / rate-limit capability that the agent can query**. If the runtime cannot expose current quota information to the agent, SafeDrain does not invent an alternative telemetry stack.
+SafeDrain depends on the active runtime exposing a **native usage / rate-limit capability
+that the agent can query**. If the runtime cannot expose current quota information to the
+agent, SafeDrain does not invent an alternative telemetry stack.
 
-If native behavior proves insufficient, the skill instructs the agent to record the concrete gap and stop rather than silently creating monitoring infrastructure.
+If native usage information itself proves insufficient, the skill instructs the agent to
+record the concrete gap and stop rather than silently creating monitoring infrastructure.
 
 ## Install as a standalone skill
 
@@ -63,7 +76,8 @@ $safe-drain
 
 ## Set the quota thresholds in the prompt
 
-SafeDrain intentionally contains **no permanent universal thresholds**. Supply the thresholds for the current workflow/session.
+SafeDrain intentionally contains **no permanent universal thresholds**. Supply the
+thresholds for the current workflow/session.
 
 Use this prompt template:
 
@@ -85,11 +99,10 @@ Weekly window:
 [Your task here]
 ```
 
-Each usage window is evaluated against **its own thresholds**. SafeDrain must not convert one window into another or apply one window's thresholds to a different window.
+Each usage window is evaluated against **its own thresholds**. SafeDrain must not convert
+one window into another or apply one window's thresholds to a different window.
 
 ### Example profile: long engineering session
-
-This profile was used in one of our naturalistic engineering workflows:
 
 ```text
 $safe-drain
@@ -109,8 +122,6 @@ Weekly window:
 
 ### Example profile: intentionally aggressive low-quota finish
 
-This profile was used for a bounded image/asset workflow where we deliberately accepted a smaller reserve:
-
 ```text
 $safe-drain
 
@@ -127,17 +138,62 @@ Weekly window:
 - hard drain: 1% remaining
 ```
 
-These are **examples, not universal recommendations**. Choose thresholds based on the cost and recoverability of the work you are about to start.
+These are **examples, not universal recommendations**. Choose thresholds based on the
+cost and recoverability of the work you are about to start.
 
-## Observed behavior in naturalistic tests
+## Cadence model in v0.2.1
 
-SafeDrain v0.2 has been exercised in multiple real workflows rather than only synthetic demos. Observed examples include:
+v0.2.1 makes one important correction: threshold classification and monitoring cadence
+are separate decisions.
 
-- an engineering session that entered caution near the configured threshold, avoided starting new large work, and checkpointed when the drain threshold was crossed;
-- an asset-generation session that stopped before launching a new expensive generation step when the configured drain threshold was reached;
-- a longer asset-generation session where the agent progressively reduced parallelism/work-unit size as weekly quota fell, entered caution at 3%, then checkpointed and stopped at the 2% weekly drain threshold.
+Being above caution does **not** automatically mean that continuing with the current
+unchecked work interval is safe.
 
-See [`docs/VALIDATION.md`](docs/VALIDATION.md) for the compact evidence summary and limitations.
+After the first usage read in a session, after a resume/handoff, or after context
+compaction, SafeDrain allows at most one substantive work unit before another native
+usage read. Those two observations provide a rough in-session burn-rate baseline.
+
+A substantive work unit is a bounded sequence that materially advances the task, such as
+one test-fix cycle, one generation job, one review, one commit-sized change, or one
+multi-step diagnostic batch.
+
+Once a baseline exists, SafeDrain compares recent observed quota consumption with the
+remaining distance to the next configured threshold. If repeating comparable unchecked
+work could cross that threshold, it must check sooner and/or make the next unit smaller.
+
+Work-unit reduction and increased monitoring are complementary controls:
+
+```text
+quota pressure rises
+→ smaller recoverable work units
+AND
+→ more frequent native usage checks
+```
+
+A usage preflight is single-use for the immediately following long-running or expensive
+operation. Intervening work makes that preflight stale for any later expensive operation.
+
+## Naturalistic evidence
+
+Earlier v0.2 runs showed good adaptive behavior in several engineering and asset workflows.
+
+Two later naturalistic runs reproduced the same cadence failure class:
+
+```text
+THRESHOLD_CROSSED_UNOBSERVED
+```
+
+One engineering run went from 28% to 15% in the 5h window without observing the configured
+25% caution or 20% drain transition. A fresh standalone asset run later went from 12% to
+4% without observing the configured 8% caution or 5% drain transition.
+
+The second reproduction used explicit `$safe-drain`, a standalone skill, a fresh thread,
+and no observed context compaction before failure. This makes plugin packaging, implicit
+invocation, and context compaction insufficient explanations for the failure class.
+
+v0.2.1 is the behavioral patch for that evidence. See
+[`docs/VALIDATION.md`](docs/VALIDATION.md) for the compact evidence record and the
+remaining validation questions.
 
 ## What SafeDrain is not
 
@@ -151,7 +207,8 @@ SafeDrain is not:
 - a guarantee that the agent can be interrupted during an operation that never returns control;
 - a replacement for project-specific recovery/checkpoint logic.
 
-SafeDrain changes **agent behavior around native quota information**. Your existing project checkpoint/handoff mechanism remains the recovery authority.
+SafeDrain changes **agent behavior around native quota information**. Your existing project
+checkpoint/handoff mechanism remains the recovery authority.
 
 ## Native Capability First
 
@@ -165,7 +222,10 @@ need capability
 → build only the gap
 ```
 
-Capability existence and reliable capability utilization are different problems. SafeDrain addresses the latter: the runtime may already know its usage state, but the agent may fail to check it proactively or fail to change behavior after a low-quota observation.
+Capability existence and reliable capability utilization are different problems.
+SafeDrain addresses the latter: the runtime may already know its usage state, but the
+agent may fail to check it proactively or fail to change behavior after a low-quota
+observation.
 
 ## Repository layout
 
@@ -182,20 +242,25 @@ Capability existence and reliable capability utilization are different problems.
         └── SKILL.md
 ```
 
-The root `plugin.json` makes the repository ready to package as a minimal skills-only plugin if/when you want to distribute it that way. The plugin contains no MCP server or custom telemetry implementation.
+The root `plugin.json` keeps the repository ready to package as a minimal skills-only
+plugin. The plugin contains no MCP server or custom telemetry implementation.
 
 ## Contributing / feedback
 
 The most useful feedback is a **concrete failure case**:
 
-- what runtime/model was used;
-- which quota windows were exposed;
+- runtime/model used;
+- quota windows exposed;
 - thresholds supplied;
+- sequence of native usage observations;
+- substantive work performed between those observations;
+- whether context compaction/resume occurred;
+- whether control returned between operations;
 - what SafeDrain did;
-- what you expected it to do;
-- whether control returned between the last successful usage check and the failure.
+- what you expected it to do.
 
-Please avoid proposing a daemon or custom telemetry layer unless a reproducible native-capability gap requires one.
+Please avoid proposing a daemon or custom telemetry layer unless a reproducible
+native-capability gap requires one.
 
 ## License
 
