@@ -1,10 +1,39 @@
-# SafeDrain v0.2.1 — naturalistic validation notes
+# SafeDrain — naturalistic validation notes
 
 SafeDrain is intentionally small. The evidence below focuses on whether behavioral
 instructions reliably change agent behavior in real quota-constrained work.
 
 This is **not** a formal benchmark and does not establish universal reliability across
 all models, accounts, runtime versions, providers, or workloads.
+
+## v0.2.2-beta naturalistic validation — 2026-09-22
+
+The v0.2.2 candidate was exercised in real multi-step workloads rather than a
+synthetic quota simulator.
+
+Observed behavior:
+
+- High-quota operation retained a coarse monitoring cadence without excessive checking.
+- Fresh burn-rate baselines were established after start/resume and after context compaction.
+- Fresh native preflight occurred immediately before expensive atomic operations.
+- A prior regression in which remaining 5h usage moved from approximately 31% to 22%
+  across one unchecked bounded unit motivated projected-threshold behavior.
+- Subsequent candidate runs did not repeat that failure mode.
+- In an asset-generation workload, SafeDrain refused another comparable generation when
+  conservative projected usage would reach the configured drain threshold.
+- In an engineering workload, 33% remaining with an approximately 8-point comparable
+  recent burn triggered preemptive caution because the projected result reached the
+  25% caution threshold.
+- At 30% remaining, one bounded atomic verification was permitted because the
+  conservative projected result remained above the 20% drain threshold.
+- At 28-27% remaining, additional comparable substantive work was refused because
+  conservative projected usage reached or crossed drain.
+- Context compaction did not break native usage authority or threshold behavior.
+- No new `THRESHOLD_CROSSED_UNOBSERVED` event was observed in the v0.2.2 candidate runs.
+
+This remains beta evidence, not proof of universal behavior across every runtime,
+model, account, quota shape, or workload. SafeDrain continues to depend exclusively
+on native runtime usage information.
 
 ## Earlier successful observations under v0.2
 

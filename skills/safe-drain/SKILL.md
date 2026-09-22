@@ -35,6 +35,18 @@ for example:
 - one commit-sized change;
 - one multi-step diagnostic or analysis batch.
 
+A substantive work unit may itself contain a much more expensive atomic operation,
+for example:
+- running a long test target;
+- launching an independent review;
+- running a generation job;
+- executing a long build or analysis;
+- starting an operation that may not return control for a while.
+
+Do not treat a preflight before the surrounding work unit as sufficient for a later
+expensive atomic operation after intervening work.
+Perform a fresh native usage preflight immediately before the expensive atomic operation.
+
 After the first native usage observation in a session, after a resume/handoff, or
 after context compaction, treat the recent burn rate as unknown.
 Complete at most one substantive work unit before performing another native usage
@@ -47,10 +59,35 @@ consumption between checks as a rough burn-rate signal.
 For each window, compare the remaining distance to its next configured threshold
 with the quota consumed over the preceding checked work interval.
 
+Use recent comparable work-unit consumption conservatively.
+Do not require an exact prediction.
+
+If recent comparable consumption is greater than or equal to the remaining distance
+to the next configured threshold, adopt that threshold's behavior before starting
+another comparable unit.
+
+Conceptually:
+
+current remaining
+- conservative recent comparable burn
+= projected remaining after the next comparable unit
+
+If the projected remaining reaches or crosses:
+- caution: enter caution behavior before starting the unit;
+- drain: do not start new substantive work; checkpoint and stop;
+- hard drain: perform only minimum recovery work and stop.
+
+Preemptive caution does not automatically forbid an unavoidable atomic operation.
+If the operation cannot be split, a fresh native usage preflight is required
+immediately before it.
+Only proceed if the projected remaining stays above drain.
+Check usage again as soon as control returns.
+
 If another comparable unchecked work unit could reach or cross the next threshold:
-- do not start that unit at the same size without a fresh native usage check;
+- do not start that unit at the same size under the previous state;
 - reduce the work unit if possible;
-- increase usage-check frequency.
+- increase usage-check frequency;
+- if the expensive portion is atomic, preflight immediately before that atomic operation.
 
 If multiple comparable work units could cumulatively reach the next threshold,
 do not chain enough of them together unchecked to reach or cross it.
@@ -84,13 +121,20 @@ that as a SafeDrain monitoring failure:
 - perform native usage checks between substantive work units while work is still allowed;
 - follow drain or hard-drain behavior immediately if either threshold has already been reached.
 
-When a configured drain threshold is reached:
+When a configured caution threshold is reached or preemptively projected:
+- reduce work-unit size where practical;
+- increase native usage-check frequency;
+- preflight immediately before expensive atomic operations;
+- do not let a prior broad work-unit preflight authorize a later expensive operation;
+- continue only while projected remaining stays above drain.
+
+When a configured drain threshold is reached or preemptively projected:
 - do not start new substantive work;
 - finish only an already in-progress atomic step needed to reach a recoverable boundary;
 - create or update the normal project checkpoint or handoff needed for recovery;
 - stop work.
 
-When a configured hard-drain threshold is reached:
+When a configured hard-drain threshold is reached or preemptively projected:
 - do no further substantive work;
 - perform only the minimum actions required for a safe, recoverable checkpoint;
 - stop immediately afterward.

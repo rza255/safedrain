@@ -11,9 +11,10 @@ script, usage parser, or persistent SafeDrain state. The design principle is sim
 use the capability the runtime already has, and build extra machinery only if a concrete
 gap is observed.
 
-> **Status:** v0.2.1 beta. Corrective cadence patch prompted by two reproduced naturalistic
-> `THRESHOLD_CROSSED_UNOBSERVED` failures. The patch itself still requires further
-> naturalistic validation.
+> **Status:** v0.2.2 beta. Projected-threshold reliability update validated in
+> naturalistic engineering and asset-generation workloads. SafeDrain now uses
+> conservative recent comparable burn to enter caution or drain behavior before
+> another comparable work unit would cross the configured threshold.
 
 ## What SafeDrain does
 

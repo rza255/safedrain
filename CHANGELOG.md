@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.2-beta — 2026-09-22
+
+- Added projected-threshold behavior based on conservative recent comparable usage burn.
+- Enters caution behavior before another comparable work unit would reach the caution threshold.
+- Refuses new substantive work when projected remaining usage would reach or cross the drain threshold.
+- Restricts hard-drain behavior to minimum recovery/checkpoint work.
+- Added fresh native usage preflight immediately before expensive atomic operations inside larger compound work units.
+- Rechecks native usage as soon as control returns from expensive atomic operations.
+- Preserves coarse monitoring cadence while quota headroom is high and tightens cadence as projected threshold risk increases.
+- Confirmed SafeDrain recovery after context compaction/resume without losing usage authority.
+- Preserves Native Capability First: no daemon, watchdog, custom telemetry, polling loop, usage parser, or persistent SafeDrain state.
+- Naturalistic validation includes engineering and asset-generation workloads, including successful preemptive caution and projected-drain refusal.
+
 ## 0.2.1-beta — 2026-09-21
 
 - Tightened proactive usage-monitoring cadence after two reproduced naturalistic `THRESHOLD_CROSSED_UNOBSERVED` failures.
