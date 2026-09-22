@@ -370,7 +370,7 @@ SafeDrain does not monitor anything after the active session has ended.
 v0.2.2 is a **public beta / prerelease**.
 
 Current naturalistic evidence supports the projected-threshold and fresh-atomic-preflight
-behavior across both engineering and asset-generation workflows. In particular, the
+behavior across both engineering and asset-generation workflows. In particular,
 v0.2.2 has demonstrated:
 
 - preemptive caution based on conservative recent comparable burn;
