@@ -1,6 +1,6 @@
 ---
 name: safe-drain
-description: Use for long-running or usage-sensitive agent engineering sessions where runtime quota must be monitored and work drained safely before exhaustion.
+description: Use for long-running or quota-sensitive Codex and agent tasks when the runtime exposes native usage limits and work should adapt or drain safely before quota exhaustion. Not for ordinary short tasks with no meaningful quota sensitivity.
 ---
 
 # SafeDrain

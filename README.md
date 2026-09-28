@@ -4,17 +4,18 @@
 
 SafeDrain is a small behavioral skill that tells an agent to use the runtime's
 **native usage/quota capability** proactively, adapt work-unit size and usage-check
-cadence as quota pressure rises, and checkpoint safely before a quota window is exhausted.
+cadence as quota pressure rises, and reserve margin for a recoverable stop.
 
 It deliberately does **not** add a daemon, watchdog, custom telemetry transport, polling
 script, usage parser, or persistent SafeDrain state. The design principle is simple:
 use the capability the runtime already has, and build extra machinery only if a concrete
 gap is observed.
 
-> **Status:** v0.2.2 beta. Projected-threshold reliability update validated in
-> naturalistic engineering and asset-generation workloads. SafeDrain now uses
-> conservative recent comparable burn to enter caution or drain behavior before
-> another comparable work unit would cross the configured threshold.
+> **Status:** 1.0.0 public-release candidate, unreleased. The behavioral instructions
+> are unchanged from v0.2.2; the trigger description, listing metadata, evidence wording,
+> and submission tests are prepared for public review. Stable means a coherent documented
+> contract with meaningful naturalistic evidence and explicit limitations, not universal
+> reliability. No OpenAI directory submission, approval, tag, or release is claimed.
 
 ## What SafeDrain does
 
@@ -38,6 +39,11 @@ SafeDrain instructs the active agent to:
 SafeDrain depends on the active runtime exposing a **native usage / rate-limit capability
 that the agent can query**. If the runtime cannot expose current quota information to the
 agent, SafeDrain does not invent an alternative telemetry stack.
+
+Installing the skill or plugin does not supply that capability. Its availability varies
+by product, account, and runtime; support is not assumed across all ChatGPT or Codex
+surfaces. The workflow must also supply thresholds for the relevant windows and its
+normal project recovery/checkpoint mechanism.
 
 If native usage information itself proves insufficient, the skill instructs the agent to
 record the concrete gap and stop rather than silently creating monitoring infrastructure.
@@ -142,10 +148,9 @@ Weekly window:
 These are **examples, not universal recommendations**. Choose thresholds based on the
 cost and recoverability of the work you are about to start.
 
-## Cadence model in v0.2.1
+## Cadence and projected thresholds
 
-v0.2.1 makes one important correction: threshold classification and monitoring cadence
-are separate decisions.
+Threshold classification and monitoring cadence are separate decisions.
 
 Being above caution does **not** automatically mean that continuing with the current
 unchecked work interval is safe.
@@ -160,7 +165,9 @@ multi-step diagnostic batch.
 
 Once a baseline exists, SafeDrain compares recent observed quota consumption with the
 remaining distance to the next configured threshold. If repeating comparable unchecked
-work could cross that threshold, it must check sooner and/or make the next unit smaller.
+work could reach or cross that threshold, it adopts that threshold's behavior before the
+unit starts. At projected caution, it reduces work size where practical and checks more
+often. At projected drain, it refuses new substantive work, checkpoints, and stops.
 
 Work-unit reduction and increased monitoring are complementary controls:
 
@@ -192,9 +199,30 @@ The second reproduction used explicit `$safe-drain`, a standalone skill, a fresh
 and no observed context compaction before failure. This makes plugin packaging, implicit
 invocation, and context compaction insufficient explanations for the failure class.
 
-v0.2.1 is the behavioral patch for that evidence. See
-[`docs/VALIDATION.md`](docs/VALIDATION.md) for the compact evidence record and the
-remaining validation questions.
+v0.2.1 tightened cadence; a later regression motivated v0.2.2's projected-threshold
+behavior and fresh atomic-operation preflights. Subsequent naturalistic engineering
+and asset-generation runs demonstrated preemptive caution, projected-drain refusal,
+recovery-only work near drain, and adaptation when actual burn exceeded an estimate.
+
+Additional engineering evidence observed a real 5h caution transition:
+approximately `26% → 25% → 23% → 21%`, with smaller work and tighter cadence at 25%,
+then a fresh preflight for one required local verification while projected remaining
+stayed above 20% drain. No unobserved drain crossing was observed in that sequence.
+
+Multiple automatic context compactions left the policy behaviorally active. Some
+post-compaction usage reads were immediate; others followed a bounded read-only or
+small interval. This does not establish immediate detection and a fresh read after
+every compaction.
+
+One parent explicitly carried the SafeDrain contract into a child thread; the child
+reloaded the skill and took its own fresh native usage reading. That is
+`CROSS_THREAD_POLICY_PROPAGATION_PASS`, not evidence of implicit activation.
+
+See [`docs/VALIDATION.md`](docs/VALIDATION.md) for evidence provenance, historical
+failures, and limitations. These observations are naturalistic validation, not a
+formal benchmark or a guarantee. A necessary recovery step can still finish inside
+the drain zone, and an uninterrupted operation can cross a threshold before control
+returns.
 
 ## What SafeDrain is not
 
@@ -237,14 +265,52 @@ observation.
 ├── LICENSE
 ├── CHANGELOG.md
 ├── docs/
-│   └── VALIDATION.md
+│   ├── VALIDATION.md
+│   └── SUBMISSION_TESTS.md
 └── skills/
     └── safe-drain/
         └── SKILL.md
 ```
 
-The root `plugin.json` keeps the repository ready to package as a minimal skills-only
-plugin. The plugin contains no MCP server or custom telemetry implementation.
+The portable root `plugin.json` uses the Agent Plugins 1.0.0 schema and keeps OpenAI
+listing metadata in `extensions.com.openai.interface`. Skills are discovered from
+root `skills/` automatically; no legacy skills declaration or compatibility overlay
+is needed. The plugin contains no MCP server or custom telemetry implementation.
+This follows the current [OpenAI packaging requirements](https://developers.openai.com/plugins/build/plugins).
+
+## Public submission preparation
+
+The repository is a candidate for later submission through the **Skills only** path.
+The [submission guide](https://developers.openai.com/plugins/deploy/submission) calls
+for local testing, realistic starter prompts, five positive and three negative cases,
+verified publisher identity, availability choices, and release notes. Reviewer scenarios
+and setup are in [`docs/SUBMISSION_TESTS.md`](docs/SUBMISSION_TESTS.md); preparing them
+does not mean they have passed portal review.
+
+The [submission error reference](https://developers.openai.com/plugins/deploy/submission-errors)
+sets the stricter final listing limits: display name and short description up to 30
+characters, developer name up to 80, long description up to 4,000, and at most three
+unique, single-line starter prompts of up to 128 characters. Listing URLs are optional
+for skills-only ZIP uploads, despite the general preparation checklist naming them.
+The repository URL is supplied as the website; separate support, privacy, and terms
+URLs are not supplied.
+
+**VISUAL_ASSET_REQUIRED_BEFORE_SUBMISSION:** a production-ready square logo and
+composer icon are still needed. Supported formats are PNG, JPEG, WebP, or SVG, up to
+5 MiB each and dimensions from 48 to 4,096 pixels. No missing asset paths are declared
+in the manifest. Add validated package-local `./assets/` references when assets exist.
+Screenshots are not applicable to this skills-only package.
+
+Remaining external gates are final visual assets, matching verified developer identity
+and submission write access, final package testing/upload, portal test-case entry where
+requested, availability and release notes, policy attestations, automated skill scans,
+and OpenAI review. This candidate has not been submitted, approved, tagged, or published.
+
+Local package installation was checked with Codex CLI 0.153.4 using a temporary
+marketplace and isolated configuration: the portable package was recognized, installed,
+and listed as version 1.0.0, with the skill contents preserved. This checks packaging,
+not implicit activation or portal certification. The directory's automated safety,
+security, image, and identity checks still require the submission infrastructure.
 
 ## Contributing / feedback
 

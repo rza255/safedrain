@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.0 candidate — Unreleased
+
+- Prepared a stable public-release candidate without changing the v0.2.2 behavioral instructions.
+- Clarified the skill trigger for long-running or quota-sensitive tasks with native usage limits; excluded ordinary short tasks.
+- Retained the portable root manifest and automatic root skills discovery; added supported OpenAI listing metadata and three starter prompts.
+- Added five positive and three negative reviewer scenarios with setup, expected behavior, and failure criteria.
+- Added user-reported real caution-crossing and explicit cross-thread policy-propagation evidence.
+- Clarified that policy survival across automatic compactions does not establish an immediate fresh usage read after every compaction.
+- Made runtime-capability limits, missing submission branding, and external review gates explicit. No submission, tag, or release has occurred.
+
 ## 0.2.2-beta — 2026-09-22
 
 - Added projected-threshold behavior based on conservative recent comparable usage burn.
@@ -9,7 +19,7 @@
 - Added fresh native usage preflight immediately before expensive atomic operations inside larger compound work units.
 - Rechecks native usage as soon as control returns from expensive atomic operations.
 - Preserves coarse monitoring cadence while quota headroom is high and tightens cadence as projected threshold risk increases.
-- Confirmed SafeDrain recovery after context compaction/resume without losing usage authority.
+- Observed SafeDrain remain behaviorally active across context compaction/resume; this does not establish immediate reads after every compaction.
 - Preserves Native Capability First: no daemon, watchdog, custom telemetry, polling loop, usage parser, or persistent SafeDrain state.
 - Naturalistic validation includes engineering and asset-generation workloads, including successful preemptive caution and projected-drain refusal.
 

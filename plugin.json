@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "safe-drain",
-  "version": "0.2.2",
-  "description": "Usage-aware graceful drain for long-running Codex and agent sessions using native runtime quota capabilities.",
+  "version": "1.0.0",
+  "description": "A behavioral policy for long-running, quota-sensitive agent tasks: use native runtime usage information, adapt cadence and work size, and checkpoint before projected drain.",
   "author": {
     "name": "Pavel Ruzicka"
   },
@@ -15,5 +15,27 @@
     "checkpoint",
     "agent",
     "safe-drain"
-  ]
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "SafeDrain",
+        "shortDescription": "Quota-aware recoverable stops",
+        "longDescription": "SafeDrain is a small behavioral skill for long-running or quota-sensitive Codex and agent tasks. It teaches the active agent to query native runtime usage information proactively, evaluate each quota window against user-supplied session thresholds, adapt both usage-check cadence and work-unit size as pressure rises, and checkpoint before starting work projected to reach drain. Native Capability First: SafeDrain supplies instructions, not quota telemetry or a background monitor. It requires an agent-queryable native usage capability and an existing project recovery mechanism. Naturalistic validation supports the documented behavior; it does not establish universal reliability or the ability to interrupt an operation that never returns control.",
+        "developerName": "Pavel Ruzicka",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Guide native quota checks",
+          "Adapt work cadence and unit size",
+          "Guide recoverable stops"
+        ],
+        "websiteURL": "https://github.com/rza255/safedrain",
+        "defaultPrompt": [
+          "Use SafeDrain for a long code review; ask for my quota thresholds and checkpoint before projected drain.",
+          "Use SafeDrain for a multi-step bug fix with my session thresholds; adapt work size and native usage checks.",
+          "Use SafeDrain to plan a costly asset-generation task; collect my thresholds and preflight each expensive operation."
+        ]
+      }
+    }
+  }
 }

@@ -6,6 +6,61 @@ instructions reliably change agent behavior in real quota-constrained work.
 This is **not** a formal benchmark and does not establish universal reliability across
 all models, accounts, runtime versions, providers, or workloads.
 
+## Additional naturalistic evidence recorded for the 1.0.0 candidate
+
+Provenance: the sequences below were supplied by the maintainer during publication
+hardening from a later long engineering workflow. They are reported observations,
+not newly rerun tests or independently audited transcripts. No private repository
+paths or source artifacts are needed to describe the SafeDrain behavior.
+
+### Real CAUTION transition
+
+The engineering profile remained 5h caution 25%, drain 20%, hard drain 15%; weekly
+caution 5%, drain 3%, hard drain 2%. Approximate late-stage 5h readings were:
+
+```text
+26% → bounded work
+25% → CAUTION explicitly recognized; smaller work unit and tighter usage cadence
+23% → fresh native preflight immediately before required local verification
+      conservative projected remaining ≈21%, still above 20% DRAIN
+      → one required verification gate authorized
+21% → final observed remaining; no unobserved DRAIN crossing observed
+```
+
+This supports reaction to a real caution transition, in addition to the earlier
+projected-caution evidence. It does not prove exact burn prediction or that every
+future transition will be observed.
+
+### Automatic context compaction
+
+Multiple automatic compactions occurred, and SafeDrain remained behaviorally active.
+Some post-compaction native usage reads were immediate; some occurred after a bounded
+read-only or small interval. No unsafe threshold crossing attributable to those
+compactions was observed.
+
+The evidence supports functional policy survival and renewed usage observations,
+not deterministic recognition of every compaction or an immediate fresh read after
+each one. The instruction to re-establish the burn-rate baseline remains the contract;
+observed timing is not a guarantee of that contract's universal execution.
+
+### Explicit cross-thread policy propagation
+
+One parent interpreted a prompt instruction to create a new Codex thread as executable
+and explicitly propagated the SafeDrain contract into that child:
+
+```text
+parent: SafeDrain active → skill loaded → fresh native usage ≈99% 5h / 93% weekly
+        → child thread created with explicit SafeDrain instructions
+child:  skill reloaded → its own fresh native usage ≈98% 5h / 93% weekly
+        → proactive SafeDrain cadence continued
+```
+
+Classification: `CROSS_THREAD_POLICY_PROPAGATION_PASS`.
+
+This validates explicit parent-to-child policy propagation. It does not validate
+implicit activation, automatic inheritance without instructions, or endorse creating
+a new thread without user authorization.
+
 ## v0.2.2-beta naturalistic validation — 2026-09-22
 
 The v0.2.2 candidate was exercised in real multi-step workloads rather than a
@@ -67,7 +122,8 @@ Observed behaviors:
 
 - high-quota operation retained coarse cadence rather than checking usage after every
   trivial action;
-- a fresh burn-rate baseline was re-established after context compaction/resume;
+- renewed usage observations and adaptive behavior followed context compaction/resume;
+  immediate reads after every compaction were not established;
 - work-unit size and check frequency tightened together as caution approached;
 - the expensive focused verification received a fresh atomic preflight rather than
   inheriting an older broad-unit preflight;
@@ -178,7 +234,8 @@ recoverability, then stop.**
 Taken together, the engineering and asset-generation cases provide evidence for:
 
 - high-headroom coarse cadence without excessive usage checking;
-- fresh burn-rate baselines after start/resume/context compaction;
+- renewed usage observations after start/resume/context compaction, without an
+  established guarantee of immediate post-compaction reads;
 - conservative projected-threshold reasoning;
 - preemptive caution before a comparable unit would reach caution;
 - fresh preflight immediately before expensive atomic operations;
@@ -188,7 +245,7 @@ Taken together, the engineering and asset-generation cases provide evidence for:
 - independent treatment of 5h and weekly windows;
 - no observed recurrence of `THRESHOLD_CROSSED_UNOBSERVED` in the v0.2.2 candidate runs.
 
-This remains beta evidence, not proof of universal behavior across every runtime,
+This remains naturalistic evidence, not proof of universal behavior across every runtime,
 model, account, quota shape, or workload. SafeDrain continues to depend exclusively
 on native runtime usage information.
 
@@ -350,6 +407,11 @@ SafeDrain state was added.
 
 ## Current limitations
 
+The active runtime must expose native usage/rate-limit information that the agent can
+query. Installing SafeDrain does not provide it, and availability is not universal
+across ChatGPT/Codex products, accounts, or runtime versions. With unavailable or
+insufficient native information, the contract is to report the concrete gap and stop.
+
 SafeDrain still cannot solve cases where the active agent cannot regain control to perform
 another native usage check. A single uninterrupted synchronous operation can cross a
 threshold before the model/controller regains control.
@@ -367,7 +429,8 @@ SafeDrain does not monitor anything after the active session has ended.
 
 ## Release posture
 
-v0.2.2 is a **public beta / prerelease**.
+The repository is a **1.0.0 public-release candidate, unreleased**. The behavioral
+instructions remain those of v0.2.2; only the YAML trigger description was clarified.
 
 Current naturalistic evidence supports the projected-threshold and fresh-atomic-preflight
 behavior across both engineering and asset-generation workflows. In particular,
@@ -377,10 +440,20 @@ v0.2.2 has demonstrated:
 - projected-drain refusal before another ordinary substantive unit;
 - recovery-only behavior close to drain;
 - correct dominance of the most severe relevant usage window;
-- disciplined stopping without opportunistically starting another major unit.
+- disciplined stopping without opportunistically starting another major unit;
+- reaction to a real caution transition in the additional engineering sequence;
+- functional policy survival across multiple automatic compactions;
+- explicit parent-to-child policy propagation with a fresh child usage reading.
 
-This evidence is materially stronger than the evidence available at the v0.2.1 release,
-but it still does not establish universal reliability.
+Stable here means a coherent documented contract, explicit known limitations, and
+meaningful practical validation. It does not mean perfect behavior across every
+model/runtime/workload. The added evidence does not justify deterministic compaction
+detection, implicit activation claims, or a new monitoring architecture.
+
+The reviewer scenarios in [SUBMISSION_TESTS.md](SUBMISSION_TESTS.md) are prepared test
+cases, not a claimed portal pass or a new naturalistic run. Final visual assets,
+publisher verification, package upload, automated scans, and OpenAI review remain
+external submission steps. No tag, release, or directory submission is claimed.
 
 Further infrastructure should still be added only if a concrete native-capability gap
 remains after behavioral correction.
