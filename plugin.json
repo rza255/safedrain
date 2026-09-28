@@ -30,6 +30,8 @@
           "Guide recoverable stops"
         ],
         "websiteURL": "https://github.com/rza255/safedrain",
+        "logo": "./assets/safedrain.png",
+        "composerIcon": "./assets/safedrain.png",
         "defaultPrompt": [
           "Use SafeDrain for a long code review; ask for my quota thresholds and checkpoint before projected drain.",
           "Use SafeDrain for a multi-step bug fix with my session thresholds; adapt work size and native usage checks.",

@@ -264,6 +264,8 @@ observation.
 ├── README.md
 ├── LICENSE
 ├── CHANGELOG.md
+├── assets/
+│   └── safedrain.png
 ├── docs/
 │   ├── VALIDATION.md
 │   └── SUBMISSION_TESTS.md
@@ -295,14 +297,14 @@ for skills-only ZIP uploads, despite the general preparation checklist naming th
 The repository URL is supplied as the website; separate support, privacy, and terms
 URLs are not supplied.
 
-**VISUAL_ASSET_REQUIRED_BEFORE_SUBMISSION:** a production-ready square logo and
-composer icon are still needed. Supported formats are PNG, JPEG, WebP, or SVG, up to
-5 MiB each and dimensions from 48 to 4,096 pixels. No missing asset paths are declared
-in the manifest. Add validated package-local `./assets/` references when assets exist.
+The approved production branding image at [`assets/safedrain.png`](assets/safedrain.png)
+is used unchanged for both `logo` and `composerIcon`, each referencing
+`./assets/safedrain.png`. The decoded PNG is square (1,254 × 1,254 pixels), is
+1,023,137 bytes, and meets the current directory image format, dimension, and size limits.
 Screenshots are not applicable to this skills-only package.
 
-Remaining external gates are final visual assets, matching verified developer identity
-and submission write access, final package testing/upload, portal test-case entry where
+Remaining external gates are matching verified developer identity and submission
+write access, final package testing/upload, portal test-case entry where
 requested, availability and release notes, policy attestations, automated skill scans,
 and OpenAI review. This candidate has not been submitted, approved, tagged, or published.
 

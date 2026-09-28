@@ -451,9 +451,10 @@ model/runtime/workload. The added evidence does not justify deterministic compac
 detection, implicit activation claims, or a new monitoring architecture.
 
 The reviewer scenarios in [SUBMISSION_TESTS.md](SUBMISSION_TESTS.md) are prepared test
-cases, not a claimed portal pass or a new naturalistic run. Final visual assets,
-publisher verification, package upload, automated scans, and OpenAI review remain
-external submission steps. No tag, release, or directory submission is claimed.
+cases, not a claimed portal pass or a new naturalistic run. The approved branding
+image is package-valid; publisher verification, package upload, automated scans, and
+OpenAI review remain external submission steps. No tag, release, or directory submission
+is claimed.
 
 Further infrastructure should still be added only if a concrete native-capability gap
 remains after behavioral correction.
