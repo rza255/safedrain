@@ -1,15 +1,15 @@
 # Changelog
 
-## 1.0.0 candidate — Unreleased
+## 1.0.0 — 2026-09-29
 
-- Prepared a stable public-release candidate without changing the v0.2.2 behavioral instructions.
+- Prepared a stable public release without changing the v0.2.2 behavioral instructions.
 - Clarified the skill trigger for long-running or quota-sensitive tasks with native usage limits; excluded ordinary short tasks.
 - Retained the portable root manifest and automatic root skills discovery; added supported OpenAI listing metadata and three starter prompts.
 - Added the approved production PNG unchanged and reused it for both the plugin logo and composer icon.
 - Added five positive and three negative reviewer scenarios with setup, expected behavior, and failure criteria.
 - Added user-reported real caution-crossing and explicit cross-thread policy-propagation evidence.
 - Clarified that policy survival across automatic compactions does not establish an immediate fresh usage read after every compaction.
-- Made runtime-capability limits, branding requirements, and external review gates explicit. No submission, tag, or release has occurred.
+- Made runtime-capability limits, branding requirements, and external review gates explicit. v1.0.0 was tagged and released on GitHub; OpenAI submission has not occurred.
 
 ## 0.2.2-beta — 2026-09-22
 

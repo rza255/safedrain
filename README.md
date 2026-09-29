@@ -11,11 +11,12 @@ script, usage parser, or persistent SafeDrain state. The design principle is sim
 use the capability the runtime already has, and build extra machinery only if a concrete
 gap is observed.
 
-> **Status:** 1.0.0 public-release candidate, unreleased. The behavioral instructions
-> are unchanged from v0.2.2; the trigger description, listing metadata, evidence wording,
-> and submission tests are prepared for public review. Stable means a coherent documented
-> contract with meaningful naturalistic evidence and explicit limitations, not universal
-> reliability. No OpenAI directory submission, approval, tag, or release is claimed.
+> **Status:** SafeDrain v1.0.0 is the first stable public GitHub release. The behavioral
+> instructions are unchanged from v0.2.2; the trigger description, listing metadata,
+> evidence wording, and submission tests are prepared for OpenAI directory submission.
+> Stable means a coherent documented contract with meaningful naturalistic evidence and
+> explicit limitations, not universal reliability. No OpenAI directory submission or
+> approval is claimed.
 
 ## What SafeDrain does
 
@@ -282,7 +283,7 @@ This follows the current [OpenAI packaging requirements](https://developers.open
 
 ## Public submission preparation
 
-The repository is a candidate for later submission through the **Skills only** path.
+The repository is prepared for later submission through the **Skills only** path.
 The [submission guide](https://developers.openai.com/plugins/deploy/submission) calls
 for local testing, realistic starter prompts, five positive and three negative cases,
 verified publisher identity, availability choices, and release notes. Reviewer scenarios
@@ -306,7 +307,7 @@ Screenshots are not applicable to this skills-only package.
 Remaining external gates are matching verified developer identity and submission
 write access, final package testing/upload, portal test-case entry where
 requested, availability and release notes, policy attestations, automated skill scans,
-and OpenAI review. This candidate has not been submitted, approved, tagged, or published.
+and OpenAI review. This package has not been submitted to or approved by OpenAI.
 
 Local package installation was checked with Codex CLI 0.153.4 using a temporary
 marketplace and isolated configuration: the portable package was recognized, installed,
