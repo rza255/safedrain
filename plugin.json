@@ -30,6 +30,7 @@
           "Guide recoverable stops"
         ],
         "websiteURL": "https://github.com/rza255/safedrain",
+        "privacyPolicyURL": "https://github.com/rza255/safedrain/blob/main/PRIVACY.md",
         "logo": "./assets/safedrain.png",
         "composerIcon": "./assets/safedrain.png",
         "defaultPrompt": [
